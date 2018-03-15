@@ -60,7 +60,7 @@ architecture rtl of top is
       GRAPH_MEM_ADDR_WIDTH : natural := 32;
       TEXT_MEM_DATA_WIDTH  : natural := 32;
       GRAPH_MEM_DATA_WIDTH : natural := 32;
-      RES_TYPE             : integer := 1;
+      RES_TYPE             : integer := 5;
       MEM_SIZE             : natural := 4800
       );
     port (
@@ -156,7 +156,11 @@ architecture rtl of top is
   signal dir_blue            : std_logic_vector(7 downto 0);
   signal dir_pixel_column    : std_logic_vector(10 downto 0);
   signal dir_pixel_row       : std_logic_vector(10 downto 0);
+  
+  signal dir_colour          : std_logic_vector(23 downto 0);
 
+  signal char_addr_next      : std_logic_vector(13 downto 0);
+  signal char_addr_r         : std_logic_vector(13 downto 0);
 begin
 
   -- calculate message lenght from font size
@@ -168,11 +172,11 @@ begin
   graphics_lenght <= conv_std_logic_vector(MEM_SIZE*8*8, GRAPH_MEM_ADDR_WIDTH);
   
   -- removed to inputs pin
-  direct_mode <= '1';
+  direct_mode <= '0';
   display_mode     <= "10";  -- 01 - text mode, 10 - graphics mode, 11 - text & graphics
   
   font_size        <= x"1";
-  show_frame       <= '1';
+  show_frame       <= '0';
   foreground_color <= x"FFFFFF";
   background_color <= x"000000";
   frame_color      <= x"FF0000";
@@ -248,18 +252,108 @@ begin
   
   -- na osnovu signala iz vga_top modula dir_pixel_column i dir_pixel_row realizovati logiku koja genereise
   --dir_red
+  --dir_colour <=X"FFFFFF"   when dir_pixel_column <= 80 else
+		--			X"DBA901"   when dir_pixel_column > 80 and dir_pixel_column <= 160 else
+			--		X"2ECCFA"   when dir_pixel_column > 160 and dir_pixel_column <= 240 else
+			--		X"01DF3A"   when dir_pixel_column > 240 and dir_pixel_column <= 320 else
+			--		X"DF01D7"   when dir_pixel_column > 320 and dir_pixel_column <= 400 else
+			--		X"FF0040"   when dir_pixel_column > 400 and dir_pixel_column <= 480 else
+			--		X"0101DF"   when dir_pixel_column > 480 and dir_pixel_column <= 560 else
+			--		X"000000";
   --dir_green
   --dir_blue
+ --dir_red <= dir_colour(23 downto 16);
+ --dir_green <= dir_colour(15 downto 8);
+ --dir_blue <= dir_colour(7 downto 0);
  
   -- koristeci signale realizovati logiku koja pise po TXT_MEM
   --char_address
   --char_value
   --char_we
-  
+--  
+--  char_we <= '1';
+--  
+--  char_address <=  "00"&x"001" when (dir_pixel_column < 7 and dir_pixel_column >= 0) and dir_pixel_row = 100 else
+--						 "00"&x"002" when (dir_pixel_column < 15 and dir_pixel_column >= 7) and dir_pixel_row = 100 else
+--						 "00"&x"003" when (dir_pixel_column < 23 and dir_pixel_column >= 15) and dir_pixel_row =100 else
+--						 "00"&x"004" when (dir_pixel_column < 31 and dir_pixel_column >= 23) and dir_pixel_row =100 else
+--						 "00"&x"005" when (dir_pixel_column < 39 and dir_pixel_column >= 31) and dir_pixel_row = 100 else
+--						 "00"&x"006" when (dir_pixel_column < 47 and dir_pixel_column >= 39) and dir_pixel_row = 100 else
+--						 
+--						 "00"&x"007" when (dir_pixel_column < 55 and dir_pixel_column >= 47) and dir_pixel_row = 100 else
+--						 
+--						 "00"&x"008" when (dir_pixel_column < 63 and dir_pixel_column >= 55) and dir_pixel_row = 100 else
+--						 "00"&x"009" when (dir_pixel_column < 71 and dir_pixel_column >= 63) and dir_pixel_row = 100 else
+--						 "00"&x"00a" when (dir_pixel_column < 79 and dir_pixel_column >= 71) and dir_pixel_row = 100 else
+--						 "00"&x"00b" when (dir_pixel_column < 87 and dir_pixel_column >= 79) and dir_pixel_row = 100 else
+--						 "00"&x"00c" when (dir_pixel_column < 95 and dir_pixel_column >= 87) and dir_pixel_row = 100 else
+--						 "00"&x"00d" when (dir_pixel_column < 103 and dir_pixel_column >= 95) and dir_pixel_row = 100 else
+--						 "00"&x"00e" when (dir_pixel_column < 111 and dir_pixel_column >= 103) and dir_pixel_row = 100 else
+--						 "00"&x"00f" when (dir_pixel_column < 119 and dir_pixel_column >= 111) and dir_pixel_row = 100 else
+--						 "00"&x"010" when (dir_pixel_column < 127 and dir_pixel_column >= 119) and dir_pixel_row = 100 else
+--						 "00"&x"011" when (dir_pixel_column < 135 and dir_pixel_column >= 127) and dir_pixel_row = 100 else
+--						 "00"&x"012" when (dir_pixel_column < 143 and dir_pixel_column >= 135) and dir_pixel_row = 100;	
+--						
+--					
+--					
+--						
+--  
+-- char_value <= 	"01"&x"2" when (char_address = "00"&x"001") else --R
+--					   "00"&x"1" when (char_address = "00"&x"002") else --A
+--						"01"&x"0" when (char_address = "00"&x"003") else --P
+--						"00"&x"1" when (char_address = "00"&x"004") else --A
+--						"00"&x"9" when (char_address = "00"&x"005") else --I
+--						"00"&x"3" when (char_address = "00"&x"006") else --C
+--						
+--						"10"&x"0" when (char_address = "00"&x"007") else --space
+--						
+--						"00"&x"1" when (char_address = "00"&x"008") else --A
+--						"00"&x"c" when (char_address = "00"&x"009") else --L
+--						"00"&x"5" when (char_address = "00"&x"00a") else --E
+--						"00"&x"b" when (char_address = "00"&x"00c") else --K
+--						"01"&x"3" when (char_address = "00"&x"00d") else --S
+--						"00"&x"1" when (char_address = "00"&x"00e") else --A
+--						"00"&x"e" when (char_address = "00"&x"00f") else --N
+--						"00"&x"4" when (char_address = "00"&x"010") else --D
+--						"00"&x"1" when (char_address = "00"&x"011") else --A
+--						"01"&x"2" when (char_address = "00"&x"012"); --R
+--						
+--					
+		char_addr_next <= char_addr_r + 1 when char_we='1' and char_addr_r < 48000 else
+								"00"&x"000" when char_we='1' and char_addr_r = 48000 else
+								char_addr;
+									
+	
   -- koristeci signale realizovati logiku koja pise po GRAPH_MEM
   --pixel_address
   --pixel_value
   --pixel_we
-  
-  
+--	pixel_we <= '1';
+--	 
+--	 pixel_address <= "00000000000000000000"  when (dir_pixel_row < 1)  else
+--				         "00000000000000010100"  when (dir_pixel_row >= 1 and dir_pixel_row < 2)  else
+--							"00000000000000101000"  when (dir_pixel_row >= 2 and dir_pixel_row < 3)  else
+--							"00000000000000111100"  when (dir_pixel_row >= 3 and dir_pixel_row < 4)  else
+--							"00000000000001010000"  when (dir_pixel_row >= 4 and dir_pixel_row < 5)	else
+--							"00000000000001010000" + 20  when (dir_pixel_row >= 5 and dir_pixel_row < 6)	else
+--							"00000000000001010000" + 40  when (dir_pixel_row >= 6 and dir_pixel_row < 7)	else
+--							"00000000000001010000" + 60  when (dir_pixel_row >= 7 and dir_pixel_row < 8)	else
+--							"00000000000001010000" + 80  when (dir_pixel_row >= 8 and dir_pixel_row < 9)	else
+--							"00000000000001010000" + 100  when (dir_pixel_row >= 9 and dir_pixel_row < 10)else
+--							"00000000000001010000" + 120  when (dir_pixel_row >= 10 and dir_pixel_row < 11) else
+--							"00000000000001010001";
+--	 
+--    pixel_value   <= "11111111111111111111111100000000"  when (pixel_address = "00000000000000000000")  else  
+--							"11000000000000000000001100000000"  when (pixel_address = "00000000000000010100")  else
+--							"11000000000000000000001100000000"  when (pixel_address = "00000000000000101000")  else
+--							"11000000000000000000001100000000"  when (pixel_address = "00000000000000111100")  else
+--							"11000000000000000000001100000000"  when (pixel_address = "00000000000001010000")  else
+--							"11000000000000000000001100000000"  when (pixel_address = "00000000000001010000" + 20)  else
+--							"11000000000000000000001100000000"  when (pixel_address = "00000000000001010000" + 40)  else
+--							"11000000000000000000001100000000"  when (pixel_address = "00000000000001010000" + 60)  else
+--							"11000000000000000000001100000000"  when (pixel_address = "00000000000001010000" + 80)  else
+--							"11000000000000000000001100000000"  when (pixel_address = "00000000000001010000" + 100)  else
+--							"11111111111111111111111100000000"  when (pixel_address = "00000000000001010000" + 120) else
+--							"00000000000000000000000000000000";
+
 end rtl;
